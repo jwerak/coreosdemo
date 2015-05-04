@@ -1,0 +1,5 @@
+*.sw[po]
+.vagrant/
+log/
+user-data
+config.rb

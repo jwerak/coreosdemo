@@ -1,0 +1,46 @@
+#cloud-config
+
+coreos:
+  etcd:
+    # generate a new token for each unique cluster from https://discovery.etcd.io/new
+    # WARNING: replace each time you 'vagrant destroy'
+    discovery: https://discovery.etcd.io/6f92ff19f827c688f16d69b307b661b6
+    addr: $public_ipv4:4001
+    peer-addr: $public_ipv4:7001
+  fleet:
+    public-ip: $public_ipv4
+  flannel:
+    interface: $public_ipv4
+  units:
+    - name: etcd.service
+      command: start
+    # To use etcd2, comment out the above service and uncomment these
+    # Note: this requires a release that contains etcd2
+    #- name: etcd2.service
+    #  command: start
+    - name: fleet.service
+      command: start
+    - name: docker-tcp.socket
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        Description=Docker Socket for the API
+
+        [Socket]
+        ListenStream=2375
+        Service=docker.service
+        BindIPv6Only=both
+
+        [Install]
+        WantedBy=sockets.target
+    - name: set-ip.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        Description=Create /etc/ip file containing ip address of host
+
+        [Service]
+        ExecStart=/usr/bin/bash -c "echo `ifconfig eth0 | grep 'inet ' | awk '{print $2}'` > /etc/ip"
+        RemainAfterExit=yes

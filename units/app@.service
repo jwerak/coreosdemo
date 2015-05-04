@@ -1,0 +1,13 @@
+[Unit]
+Description=App service
+
+[Service]
+ExecStart=/usr/bin/docker run --rm --name app -p 5000:5000 -v /usr/bin/etcdctl:/usr/bin/etcdctl -v /etc/ip:/etc/ip:ro python /bin/bash -c 'curl https://gist.githubusercontent.com/veverjak/f28db0b93120a96ba8d0/raw/8d3660642e1b67aee5ac7aa4474cfec7a2965804/run_app.sh -o run_app.sh && bash /run_app.sh'
+TimeoutStartSec=10m
+RestartSec=1m
+Restart=always
+ExecStop=/usr/bin/docker stop app
+
+[X-Fleet]
+Conflicts=app@*.service
+
